@@ -132,11 +132,15 @@ function Secondary(name, db, reduce) {
 
     tr._transform = function(chunk, enc, done) {
       var key = chunk.value;
+
+      if (opts.values === false) {
+        done(null, key);
+        return;
+      }
+
       db.get(key, function(err, value) {
         if (err) return done(err);
-        if (opts.values === false) {
-          done(null, key);
-        } else if (opts.keys === false) {
+        if (opts.keys === false) {
           done(null, value);
         } else {
           done(null, {
