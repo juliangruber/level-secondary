@@ -18,19 +18,34 @@ function Secondary(name, db, reduce) {
       fn = opts;
       opts = {};
     }
-   
-    batch.call(db, [
-      extend({
-        type: 'put',
-        key: key,
-        value: value
-      }, opts), {
-        type: 'put',
-        key: reduce(value),
-        value: key,
-        prefix: sub
+
+    db.get(key, function(err, _value) {
+      if (err && err.name != 'NotFoundError') return fn(err);
+      var update = !err;
+
+      var ops = [
+        extend({
+          type: 'put',
+          key: key,
+          value: value
+        }, opts), {
+          type: 'put',
+          key: reduce(value),
+          value: key,
+          prefix: sub
+        }
+      ];
+
+      if (update && reduce(value) !== reduce(_value)) {
+        ops.push({
+          type: 'del',
+          key: reduce(_value),
+          prefix: sub
+        });
       }
-    ], fn);
+      
+      batch.call(db, ops, fn);
+    });
   };
 
   db.del = function(key, fn) {
