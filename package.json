@@ -1,0 +1,35 @@
+{
+  "name": "level-secondary",
+  "description": "Secondary indexes for leveldb.",
+  "version": "0.0.0",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/juliangruber/level-secondary.git"
+  },
+  "homepage": "https://github.com/juliangruber/level-secondary",
+  "main": "index.js",
+  "scripts": {
+    "test": "tape test/*.js"
+  },
+  "dependencies": {
+    "xtend": "~2.1.1"
+  },
+  "devDependencies": {
+    "tape": "*",
+    "level-sublevel": "~5.1.1",
+    "level": "~0.15.0"
+  },
+  "keywords": [
+    "level",
+    "levelup",
+    "secondary",
+    "indexes",
+    "index"
+  ],
+  "author": {
+    "name": "Julian Gruber",
+    "email": "mail@juliangruber.com",
+    "url": "http://juliangruber.com"
+  },
+  "license": "MIT"
+}
