@@ -18,8 +18,6 @@ function Secondary(name, db, reduce) {
       fn = opts;
       opts = {};
     }
-
-    console.log('put', key, value, opts)
    
     batch.call(db, [
       extend({
