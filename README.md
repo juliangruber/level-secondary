@@ -3,6 +3,8 @@
 
 Secondary indexes for leveldb.
 
+[![build status](https://secure.travis-ci.org/juliangruber/level-secondary.png)](http://travis-ci.org/juliangruber/level-secondary)
+
 ## Example
 
 Create 2 indexes on top of a posts database.
