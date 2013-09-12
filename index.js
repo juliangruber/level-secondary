@@ -1,5 +1,6 @@
 var extend = require('xtend');
-var Transform = require('stream').Transform;
+var Transform = require('stream').Transform
+  || require('readable-stream').Transform;
 
 module.exports = Secondary;
 
