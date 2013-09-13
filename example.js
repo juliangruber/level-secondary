@@ -7,8 +7,8 @@ var db = sub(level(__dirname + '/db', {
 }));
 
 var posts = db.sublevel('posts');
-posts = Secondary('title', posts);
-posts = Secondary('length', posts, function(post){
+posts.byTitle = Secondary(posts, 'title');
+posts.byLength = Secondary(posts, 'length', function(post){
   return post.body.length;
 });
 

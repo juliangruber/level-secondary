@@ -4,141 +4,52 @@ var Transform = require('stream').Transform
 
 module.exports = Secondary;
 
-function Secondary(name, db, reduce) {
+function Secondary(db, name, reduce) {
+  var sub = db.sublevel(name);
+
   if (!reduce) {
     reduce = function(value) {
       return value[name];
     };
   }
 
-  var batch = db.batch;
-  var sub = db.sublevel(name);
+  db.pre(function(change, add) {
+    if (change.type != 'put') return;
 
-  db.put = function(key, value, opts, fn) {
-    if (typeof opts == 'function') {
-      fn = opts;
-      opts = {};
-    }
-
-    db.get(key, function(err, _value) {
-      if (err && err.name != 'NotFoundError') return fn(err);
-      var update = !err;
-
-      var ops = [
-        extend({
-          type: 'put',
-          key: key,
-          value: value
-        }, opts), {
-          type: 'put',
-          key: reduce(value),
-          value: key,
-          prefix: sub
-        }
-      ];
-
-      if (update && reduce(value) !== reduce(_value)) {
-        ops.push({
-          type: 'del',
-          key: reduce(_value),
-          prefix: sub
-        });
-      }
-      
-      batch.call(db, ops, fn);
+    add({
+      type: 'put',
+      key: reduce(change.value),
+      value: change.key,
+      prefix: sub
     });
-  };
+  });
 
-  db.del = function(key, fn) {
-    db.get(key, function(err, value) {
-      if (err && err.name == 'NotFoundError') return fn();
-      if (err) return fn(err);
+  var secondary = {};
 
-      batch.call(db, [
-        {
-          type: 'del',
-          key: key
-        }, {
-          type: 'del',
-          key: reduce(value),
-          prefix: sub
-        }
-      ], fn);
-    });
-  };
+  secondary.get = op('get');
+  secondary.del = op('del');
 
-  db.batch = function(ops, fn) {
-    var add = [];
-
-    function next(i) {
-      var op = ops[i];
-      if (!op) return write();
-
-      if (op.prefix) {
-        next(i + 1);
-      } else if (op.type == 'put') {
-        add.push({
-          type: 'put',
-          key: reduce(op.value),
-          value: op.key,
-          prefix: sub
-        });
-        next(i + 1);
-      } else {
-        db.get(op.key, function(err, value) {
-          if (err) return fn(err);
-          add.push({
-            type: 'del',
-            key: reduce(value),
-            prefix: sub
-          });
-          next(i + 1);
-        });
+  function op(type) {
+    return function (key, opts, fn) {
+      if (typeof opts == 'function') {
+        fn = opts;
+        opts = {};
       }
-    }
 
-    next(0);
-
-    function write() {
-      batch.call(db, ops.concat(add), fn);
-    }
+      sub.get(key, function(err, value) {
+        if (err) return fn(err);
+        db[type](value, opts, fn);
+      });
+    };
   }
 
-  var secondary = db['by' + name[0].toUpperCase() + name.slice(1)] = {};
-
-  secondary.get = function(key, opts, fn) {
-    if (typeof opts == 'function') {
-      fn = opts;
-      opts = {};
-    }
-
-    sub.get(key, function(err, value) {
-      if (err) return fn(err);
-      db.get(value, opts, fn);
-    });
-  };
-
-  secondary.del = function(key, opts, fn) {
-    if (typeof opts == 'function') {
-      fn = opts;
-      opts = {};
-    }
-
-    sub.get(key, function(err, value) {
-      if (err) return fn(err);
-      db.del(value, opts, fn);
-    });
-  };
-
   secondary.createValueStream = function(opts) {
-    opts = opts || {};
-    opts.keys = false;
+    (opts && opts || (opts = {})).keys = false;
     return secondary.createReadStream(opts);
   }
 
   secondary.createKeyStream = function(opts) {
-    opts = opts || {};
-    opts.values = false;
+    (opts && opts || (opts = {})).values = false;
     return secondary.createReadStream(opts);
   }
 
@@ -155,14 +66,26 @@ function Secondary(name, db, reduce) {
       }
 
       db.get(key, function(err, value) {
-        if (err) return done(err);
-        if (opts.keys === false) {
-          done(null, value);
-        } else {
-          done(null, {
-            key: key,
-            value: value
+        if (err && err.type == 'NotFoundError') {
+          sub.del(key, function(err) {
+            if (err) return done(err);
+            emit();
           });
+        } else if (err) {
+          done(err);
+        } else {
+          emit();
+        }
+
+        function emit() {
+          if (opts.keys === false) {
+            done(null, value);
+          } else {
+            done(null, {
+              key: key,
+              value: value
+            });
+          }
         }
       });
     };
@@ -174,5 +97,5 @@ function Secondary(name, db, reduce) {
     return tr;
   };
 
-  return db;
+  return secondary;
 }

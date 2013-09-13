@@ -8,8 +8,8 @@ test('get', function(t) {
   var db = sub(level('db', { valueEncoding: 'json' }));
 
   var posts = db.sublevel('posts');
-  posts = Secondary('title', posts);
-  posts = Secondary('length', posts, function(post){
+  posts.byTitle = Secondary(posts, 'title');
+  posts.byLength = Secondary(posts, 'length', function(post){
     return post.body.length;
   });
 

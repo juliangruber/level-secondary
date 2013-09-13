@@ -21,10 +21,10 @@ var db = sub(level(__dirname + '/db', {
 var posts = db.sublevel('posts');
 
 // add a title index
-posts = Secondary('title', posts);
+posts.byTitle = Secondary(posts, 'title');
 
 // add a length index
-posts = Secondary('length', posts, function(post){
+posts.byLength = Secondary(posts, 'length', function(post){
   return post.body.length;
 });
 
@@ -70,13 +70,37 @@ posts.put('1337', {
 
 ## API
 
-*TODO*
-
 ### Secondary(db, name[, reduce])
 
-### db#by{Name}.get(key, opts[, cb])
+Return a secondary index that either indexes property `name` or uses a custom
+`reduce` function to map values to indexes.
 
-### db#by{Name}.create{Key,Value,Read}Stream(opts)
+### Secondary#get(key, opts[, cb])
+
+Get the value that has been indexed with `key`.
+
+### Secondary.create{Key,Value,Read}Stream(opts)
+
+Create a readable stream that has indexes as keys and indexed data as values.
+
+## Changes
+
+### 1.0.0
+
+What used to be
+
+```js
+db = Secondary('name', db);
+```
+
+is now
+
+```js
+db.byName = Secondary(db, 'name');
+```
+
+Also hooks are used, so it works perfectly with batches across multiple
+sublevels.
 
 ## Installation
 
