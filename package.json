@@ -9,7 +9,7 @@
   "homepage": "https://github.com/juliangruber/level-secondary",
   "main": "index.js",
   "scripts": {
-    "test": "set -e; for t in test/*.js; do node $t; done"
+    "test": "tape test/*.js"
   },
   "dependencies": {
     "xtend": "~2.1.1",
