@@ -67,10 +67,7 @@ function Secondary(db, name, reduce) {
 
       db.get(key, function(err, value) {
         if (err && err.type == 'NotFoundError') {
-          sub.del(key, function(err) {
-            if (err) return done(err);
-            emit();
-          });
+          sub.del(key, done);
         } else if (err) {
           done(err);
         } else {
