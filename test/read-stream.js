@@ -1,11 +1,11 @@
-var level = require('level-test')();
+var level = require('memdb');
 var Secondary = require('..');
 var sub = require('level-sublevel');
 var test = require('tape');
 
 test('read streams', function(t) {
   t.plan(4);
-  var db = sub(level('db', { valueEncoding: 'json' }));
+  var db = sub(level({ valueEncoding: 'json' }));
 
   var posts = db.sublevel('posts');
   posts.byTitle = Secondary(posts, 'title');
