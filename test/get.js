@@ -4,7 +4,7 @@ var sub = require('level-sublevel');
 var test = require('tape');
 
 test('get', function(t) {
-  t.plan(6);
+  t.plan(3);
   var db = sub(level({ valueEncoding: 'json' }));
 
   var posts = db.sublevel('posts');
@@ -24,14 +24,6 @@ test('get', function(t) {
     posts.byTitle.get('a title', function(err, _post) {
       t.error(err);
       t.deepEqual(_post, post);
-
-      posts.del('1337', function(err) {
-        t.error(err);
-        posts.byTitle.get('a title', function(err) {
-          t.ok(err);
-          t.equal(err.name, 'NotFoundError');
-        });
-      });
     });
   });
 });
