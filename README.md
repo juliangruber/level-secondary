@@ -79,11 +79,15 @@ Return a secondary index that either indexes property `name` or uses a custom
 
 Get the value that has been indexed with `key`.
 
-### Secondary.create{Key,Value,Read}Stream(opts)
+### Secondary#create{Key,Value,Read}Stream(opts)
 
 Create a readable stream that has indexes as keys and indexed data as values.
 
-## Changes
+### Secondary#manifest
+
+A [level manifest](https://github.com/dominictarr/level-manifest) that you can pass to [multilevel](https://github.com/juliangruber/multilevel).
+
+## Breaking changes
 
 ### 1.0.0
 

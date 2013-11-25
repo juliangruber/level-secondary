@@ -25,6 +25,16 @@ function Secondary(db, name, reduce) {
   });
 
   var secondary = {};
+  
+  secondary.manifest = {
+    methods: {
+      get: { type: 'async' },
+      del: { type: 'async' },
+      createValueStream: { type: 'readable' },
+      createKeyStream: { type: 'readable' },
+      createReadStream: { type: 'readable' }
+    }
+  };
 
   secondary.get = op('get');
   secondary.del = op('del');

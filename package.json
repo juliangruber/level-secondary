@@ -18,7 +18,8 @@
   "devDependencies": {
     "tape": "*",
     "level-sublevel": "~5.1.1",
-    "memdb": "0.0.3"
+    "memdb": "0.0.3",
+    "multilevel": "~5.5.0"
   },
   "keywords": [
     "level",
