@@ -1,4 +1,3 @@
-
 # level-secondary
 
 Secondary indexes for leveldb.
@@ -24,11 +23,13 @@ var posts = db.sublevel('posts');
 posts.byTitle = Secondary(posts, 'title');
 
 // add a length index
+// append the post.id for unique indexes with possibly overlapping values
 posts.byLength = Secondary(posts, 'length', function(post){
-  return post.body.length;
+  return post.body.length + '!' + post.id;
 });
 
 posts.put('1337', {
+  id: '1337',
   title: 'a title',
   body: 'lorem ipsum'
 }, function(err) {
@@ -37,7 +38,7 @@ posts.put('1337', {
   posts.byTitle.get('a title', function(err, post) {
     if (err) throw err;
     console.log('get', post);
-    // => get: { title: 'a title', body: 'lorem ipsum' }
+    // => get: { id: '1337', title: 'a title', body: 'lorem ipsum' }
 
     posts.del('1337', function(err) {
       if (err) throw err;
@@ -52,7 +53,7 @@ posts.put('1337', {
     start: 10,
     end: 20
   }).on('data', console.log.bind(console, 'read'));
-  // => read { key: '1337', value: { title: 'a title', body: 'lorem ipsum' } }
+  // => read { key: '1337', value: { id: '1337', title: 'a title', body: 'lorem ipsum' } }
 
   posts.byLength.createKeyStream({
     start: 10,
@@ -64,7 +65,7 @@ posts.put('1337', {
     start: 10,
     end: 20
   }).on('data', console.log.bind(console, 'value'));
-  // => value { title: 'a title', body: 'lorem ipsum' }
+  // => value { id: '1337', title: 'a title', body: 'lorem ipsum' }
 });
 ```
 
