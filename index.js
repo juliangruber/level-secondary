@@ -4,18 +4,15 @@ var Transform = require('stream').Transform
 
 module.exports = Secondary;
 
-function Secondary(db, name, reduce) {
-  var sub = db.sublevel(name);
-
+function Secondary(db, sub, name, reduce) {
   if (!reduce) {
     reduce = function(value) {
       return value[name];
     };
   }
 
-  db.pre(function(change, add) {
+  db.hooks.pre(function(change, add) {
     if (change.type != 'put') return;
-
     add({
       type: 'put',
       key: reduce(change.value),
