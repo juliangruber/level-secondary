@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "xtend": "~4.0.1",
-    "readable-stream": "~2.1.5"
+    "readable-stream": "~2.2.0"
   },
   "devDependencies": {
     "tape": "*",
