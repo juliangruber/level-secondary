@@ -6,9 +6,10 @@ var test = require('tape');
 test('del', function(t) {
   t.plan(5);
   var db = sub(level({ valueEncoding: 'json' }));
+  var idb = db.sublevel('title')
 
   var posts = db.sublevel('posts');
-  posts.byTitle = Secondary(posts, 'title');
+  posts.byTitle = Secondary(posts, idb, 'title');
 
   posts.put('1337', {
     title: 'a title',

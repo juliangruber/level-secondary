@@ -12,14 +12,16 @@
     "test": "tape test/*.js"
   },
   "dependencies": {
-    "xtend": "~4.0.1",
-    "readable-stream": "~2.2.0"
+    "level-hooks": "^4.5.0",
+    "readable-stream": "~2.2.0",
+    "xtend": "~4.0.1"
   },
   "devDependencies": {
-    "tape": "*",
     "level-sublevel": "~6.6.1",
     "memdb": "1.3.1",
-    "multilevel": "~7.3.0"
+    "multilevel": "~7.3.0",
+    "subleveldown": "^2.1.0",
+    "tape": "*"
   },
   "keywords": [
     "level",
