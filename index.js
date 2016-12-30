@@ -1,31 +1,39 @@
 var extend = require('xtend');
+var hooks = require('level-hooks');
 var Transform = require('stream').Transform
   || require('readable-stream').Transform;
 
 module.exports = Secondary;
 
-function Secondary(db, name, reduce) {
-  var sub = db.sublevel(name);
+function Secondary(db, idb, reduce) {
+  if (db.sublevel && !db.hooks) {
+    db.hooks = {}
+    db.hooks.pre = db.pre
+    db.hooks.post = db.post
+  }
 
-  if (!reduce) {
+  if (!db.hooks) {
+    hooks(db)
+  }
+
+  if (reduce && typeof reduce === 'string') {
+    var reducerString = reduce
     reduce = function(value) {
-      return value[name];
+      return value[reducerString]
     };
   }
 
-  db.pre(function(change, add) {
-    if (change.type != 'put') return;
+  if (typeof reduce !== 'function') {
+    throw new Error('Reduce argument must be a string or function')
+  }
 
-    add({
-      type: 'put',
-      key: reduce(change.value),
-      value: change.key,
-      prefix: sub
-    });
+  db.hooks.pre(function(change, add) {
+    if (change.type != 'put') return;
+    idb.put(reduce(change.value), change.key)
   });
 
   var secondary = {};
-  
+
   secondary.manifest = {
     methods: {
       get: { type: 'async' },
@@ -46,7 +54,7 @@ function Secondary(db, name, reduce) {
         opts = {};
       }
 
-      sub.get(key, function(err, value) {
+      idb.get(key, function(err, value) {
         if (err) return fn(err);
         db[type](value, opts, fn);
       });
@@ -69,7 +77,6 @@ function Secondary(db, name, reduce) {
 
     tr._transform = function(chunk, enc, done) {
       var key = chunk.value;
-
       if (opts.values === false) {
         done(null, key);
         return;
@@ -77,7 +84,7 @@ function Secondary(db, name, reduce) {
 
       db.get(key, function(err, value) {
         if (err && err.type == 'NotFoundError') {
-          sub.del(key, done);
+          idb.del(key, done);
         } else if (err) {
           done(err);
         } else {
@@ -99,7 +106,7 @@ function Secondary(db, name, reduce) {
 
     var opts2 = extend({}, opts);
     opts2.keys = opts2.values = true;
-    sub.createReadStream(opts2).pipe(tr);
+    idb.createReadStream(opts2).pipe(tr);
 
     return tr;
   };

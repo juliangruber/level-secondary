@@ -6,9 +6,10 @@ var multilevel = require('multilevel');
 
 test('multilevel', function(t) {
 	t.plan(3);
-	
+
 	var db = sub(level({ valueEncoding: 'json' }));
-	var byTitle = Secondary(db, 'title');
+	var idb = db.sublevel('title')
+	var byTitle = Secondary(db, idb, 'title');
 	var server = multilevel.server(byTitle);
 	var client = multilevel.client(byTitle.manifest);
 

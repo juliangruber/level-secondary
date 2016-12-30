@@ -20,11 +20,11 @@ var db = sub(level(__dirname + '/db', {
 var posts = db.sublevel('posts');
 
 // add a title index
-posts.byTitle = Secondary(posts, 'title');
+posts.byTitle = Secondary(posts, db.sublevel('title'), 'title');
 
 // add a length index
 // append the post.id for unique indexes with possibly overlapping values
-posts.byLength = Secondary(posts, 'length', function(post){
+posts.byLength = Secondary(posts, db.sublevel('length'), function(post){
   return post.body.length + '!' + post.id;
 });
 
@@ -69,12 +69,33 @@ posts.put('1337', {
 });
 ```
 
+Same arrangement as above, but using a separate index level and [subleveldown](https://github.com/mafintosh/subleveldown) instead of [level-sublevel](https://github.com/dominictarr/level-sublevel).
+
+```js
+var level = require('level');
+var Secondary = require('level-secondary');
+var sub = require('subleveldown');
+
+var db = level(__dirname + '/db');
+var idb = level(__dirname + '/idb');
+
+var posts = sub(db, 'posts', { valueEncoding: 'json' });
+
+// add a title index
+posts.byTitle = Secondary(posts, sub(idb, 'title', { valueEncoding: 'json' }), 'title');
+
+// add a length index
+// append the post.id for unique indexes with possibly overlapping values
+posts.byLength = Secondary(posts, sub(idb, 'length', { valueEncoding: 'json' }), function(post){
+  return post.body.length + '!' + post.id;
+});
+```
+
 ## API
 
-### Secondary(db, name[, reduce])
+### Secondary(db, idb[, reduce])
 
-Return a secondary index that either indexes property `name` or uses a custom
-`reduce` function to map values to indexes.
+Takes any level as `db` and any level as `idb` to use as a secondary index that either indexes a property name if `reduce` is a string or uses a custom `reduce` function to map values to indexes.  The level that gets passed as `db` gets mutated by [`dominictarr/level-hooks`](https://github.com/dominictarr/level-hooks) in order to capture db events.  Secondary returns a wrapped `idb` level that helps prune old index values.
 
 ### Secondary#get(key, opts[, cb])
 
@@ -89,6 +110,48 @@ Create a readable stream that has indexes as keys and indexed data as values.
 A [level manifest](https://github.com/dominictarr/level-manifest) that you can pass to [multilevel](https://github.com/juliangruber/multilevel).
 
 ## Breaking changes
+
+### 2.0.0
+
+You are now in charge of creating isolated levels for indexes yourself now.  This allows for greater flexibility on key and value encodings, and lets you separate out storage locations, as well as use other `sublevel` solutions.
+
+What used to be
+
+```js
+var level = require('level');
+var Secondary = require('level-secondary');
+var sub = require('level-sublevel');
+
+var db = sub(level(__dirname + '/db', {
+  valueEncoding: 'json'
+}));
+
+var posts = db.sublevel('posts');
+
+posts.byTitle = Secondary(posts, 'title');
+posts.byLength = Secondary(posts, 'length', function(post){
+  return post.body.length + '!' + post.id;
+});
+```
+
+is now
+
+```js
+var level = require('level');
+var Secondary = require('level-secondary');
+var sub = require('level-sublevel');
+
+var db = sub(level(__dirname + '/db', {
+  valueEncoding: 'json'
+}));
+
+var posts = db.sublevel('posts');
+
+posts.byTitle = Secondary(posts, db.sublevel('title'), 'title');
+posts.byLength = Secondary(posts, db.sublevel('length'), function(post){
+  return post.body.length + '!' + post.id;
+});
+```
 
 ### 1.0.0
 
