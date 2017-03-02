@@ -15,10 +15,10 @@ function Secondary(db, name, reduce) {
 
   db.pre(function(change, add) {
     if (change.type != 'put') return;
-
-    add({
+    var key = reduce(change.value,change.key);
+    if (key !== null) add({
       type: 'put',
-      key: reduce(change.value,change.key),
+      key: key,
       value: change.key,
       prefix: sub
     });

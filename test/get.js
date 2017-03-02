@@ -4,7 +4,7 @@ var sub = require('level-sublevel');
 var test = require('tape');
 
 test('get', function(t) {
-  t.plan(5);
+  t.plan(7);
   var db = sub(level({ valueEncoding: 'json' }));
 
   var posts = db.sublevel('posts');
@@ -14,6 +14,9 @@ test('get', function(t) {
   });
   posts.byKeyHead = Secondary(posts, 'keyhead', function(post,key){
     return key[0];
+  });
+  posts.byPartialIndex = Secondary(posts, 'partial', function(post){
+    return post.title === 'a title' ? null : post.title ;
   });
 
   var post = {
@@ -30,6 +33,10 @@ test('get', function(t) {
       posts.byKeyHead.get('1', function(err, _post) {
         t.error(err);
         t.deepEqual(_post, post);
+        posts.byPartialIndex.get('a title', function(err, _post) {
+          t.ok(err);
+          t.ok(err.notFound);
+        });
       });
     });
   });
