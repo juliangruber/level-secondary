@@ -18,14 +18,14 @@ function Secondary(db, name, reduce) {
 
     add({
       type: 'put',
-      key: reduce(change.value),
+      key: reduce(change.value,change.key),
       value: change.key,
       prefix: sub
     });
   });
 
   var secondary = {};
-  
+
   secondary.manifest = {
     methods: {
       get: { type: 'async' },
